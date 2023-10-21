@@ -1,4 +1,4 @@
-# dsd README
+# DSD VSCode Extension
 
 This extension adds language support for the DSD language.
 As of now, it only adds syntax highlighting but full language support including auto-completion, auto-formatting and more is planned.
