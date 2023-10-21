@@ -5,59 +5,39 @@ As of now, it only adds syntax highlighting but full language support including 
 
 ## Features
 
-- Syntax highlighting for DSD files:
-![Syntax Highlighting](./images/syntax_highlighting-1.png)
+Syntax highlighting for DSD files:
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+![Syntax Highlighting](./images/syntax_highlighting-3.png)
+<!-- ![Syntax Highlighting 2](./images/syntax_highlighting-2.png) -->
+[Code Source](https://github.com/bit-bots/bitbots_behavior/blob/master/bitbots_body_behavior/bitbots_body_behavior/minimal.dsd)
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+Currently no requirements. This will change once further features are added so check back here when you update the extension.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Currently this extension has no settings. Mandetory settings will be added once further features are added so check back here when you update the extension.
 
-For example:
-
-This extension contributes the following settings:
+<!-- This extension contributes the following settings:
 
 * `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+* `myExtension.thing`: Set to `blah` to do something. -->
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+- The name of the entrypoint is currently not highlighted.
+
+If you find any issues not listed here, please report them on the [GitHub issue tracker](https://github.com/Mastermori/vscode-dsd/issues).
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+A comprehensive changelog can be found here: [CHANGELOG.md](./CHANGELOG.md)
 
-### 1.0.0
+### 0.0.1
 
-Initial release of ...
+Initial development release, providing syntax highlighting for DSD files.
 
-### 1.0.1
+<!-- ### 1.0.0
 
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release. -->
