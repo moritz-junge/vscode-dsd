@@ -1,0 +1,25 @@
+{
+  "name": "dsd",
+  "displayName": "DSD",
+  "description": "Adds Dynamic Stack Decider language support to VS Code",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.83.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "dsd",
+      "aliases": ["Dynamic Stack Decider", "dsd"],
+      "extensions": [".dsd"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "dsd",
+      "scopeName": "source.dsd",
+      "path": "./syntaxes/dsd.tmLanguage.json"
+    }]
+  }
+}

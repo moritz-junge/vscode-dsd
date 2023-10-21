@@ -1,0 +1,110 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Dynamic Stack Decider",
+	"patterns": [
+		{
+			"include": "#entrypoint"
+		},
+		{
+			"include": "#descision"
+		},
+		{
+			"include": "#subtree"
+		},
+		{
+			"include": "#action"
+		},
+		{
+			"include": "#arguments"
+		},
+		{
+			"include": "#comments"
+		}
+	],
+	"repository": {
+		"entrypoint": {
+			"patterns": [
+				{
+					"name": "keyword.control.entrypoint.dsd",
+					"match": "^(-->)"
+				}
+			]
+		},
+		"descision": {
+			"patterns": [
+				{
+					"name": "entity.name.type.class.dsd",
+					"match": "(\\$[A-Za-z]+)\\b"
+				},
+				{
+					"name": "entity.name.variable.dsd",
+					"match": "^\\s+([A-Z_]+)\\b"
+				}
+			]
+		},
+		"subtree": {
+			"patterns": [
+				{
+					"name": "entity.name.function.dsd",
+					"match": "(#[A-Za-z]+)\\b"
+				}
+			]
+		},
+		"action": {
+			"patterns": [
+				{
+					"name": "keyword.control.dsd",
+					"match": "(@[A-Za-z]+)\\b"
+				}
+			]
+		},
+		"arguments": {
+			"patterns": [
+				{
+					"name": "meta.function-call.arguments.dsd",
+					"begin": "\\+\\s+([A-Za-z]+):",
+					"beginCaptures": {
+						"1": {
+							"name": "variable.function-call.parameter.dsd"
+						}
+					},
+					"end": "\\s",
+					"patterns": [
+						{
+							"name": "constant.language.dsd",
+							"match": "\\b(true|false)\\b"
+						},
+						{
+							"name": "constant.numeric.dsd",
+							"match": "\\b(\\d*\\.?\\d+)\\b"
+						},
+						{
+							"match": "(%(?:[A-Za-z_]+\\.)+)([A-Za-z_]+)",
+							"captures": {
+								"1": {
+									"name": "string.unquoted.dsd"
+								},
+								"2": {
+									"name": "string.unquoted.dsd"
+								}
+							}
+						},
+						{
+							"name": "string.unquoted.dsd",
+							"match": "([A-Za-z_]+)"
+						}
+					]
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.demonass",
+					"match": "//.*\n"
+				}
+			]
+		}
+	},
+	"scopeName": "source.dsd"
+}
