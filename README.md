@@ -5,11 +5,12 @@ As of now, it only adds syntax highlighting but full language support including 
 
 ## Features
 
-Syntax highlighting for DSD files:
+- Syntax highlighting for DSD files:
 
-![Syntax Highlighting](./images/syntax_highlighting-3.png)
-<!-- ![Syntax Highlighting 2](./images/syntax_highlighting-2.png) -->
+![Syntax Highlighting](./images/syntax_highlighting-3.png) <br>
 [Code Source](https://github.com/bit-bots/bitbots_behavior/blob/master/bitbots_body_behavior/bitbots_body_behavior/minimal.dsd)
+
+- Basic VS Code language features: currently only toggle comment (\[Ctrl + /\] by default).
 
 ## Requirements
 
