@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "dsd-language-server"
+version = "0.0.1"
+description = "A language server providing DSD language support for VS Code and other IDEs through LSP."
+authors = ["Mastermori <mastermoriii@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "dsd_language_server"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pygls = "^1.1.1"
+
+[tool.poetry.scripts]
+dsd-ls = 'dsd_language_server.__main__:main'
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
