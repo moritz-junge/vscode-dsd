@@ -2,30 +2,123 @@
   "name": "dsd",
   "displayName": "DSD",
   "description": "Adds Dynamic Stack Decider language support to VS Code",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.83.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Mastermori/vscode-dsd"
   },
+  "bugs": {
+    "url": "https://github.com/Mastermori/vscode-dsd/issues"
+},
   "icon": "./images/icon.png",
   "publisher": "Mastermori",
+  "main": "./out/extension",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p .",
+    "watch": "tsc -p . -w"
+  },
   "contributes": {
-    "languages": [{
-      "id": "dsd",
-      "aliases": ["Dynamic Stack Decider", "dsd"],
-      "extensions": [".dsd"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "dsd",
-      "scopeName": "source.dsd",
-      "path": "./syntaxes/dsd.tmLanguage.json"
-    }]
+    "configuration": [
+      {
+        "type": "object",
+        "title": "Server Configuration",
+        "properties": {
+          "pygls.trace.server": {
+            "scope": "window",
+            "type": "string",
+            "default": "off",
+            "enum": [
+              "off",
+              "verbose"
+            ],
+            "description": "Controls if LSP messages send to/from the server should be logged.",
+            "enumDescriptions": [
+              "do not log any lsp messages",
+              "log all lsp messages sent to/from the server"
+            ]
+          }
+        }
+      },
+      {
+        "type": "object",
+        "title": "Client Configuration",
+        "properties": {
+          "dsd.client.documentSelector": {
+            "scope": "window",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "default": [
+              {
+                "scheme": "file",
+                "language": "dsd"
+              }
+            ],
+            "description": "The client uses this to decide which documents the server should recognize as DSD files.",
+            "markdownDescription": "The client uses this to decide which documents the server should recognize as DSD files\n See [DocumentSelector](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentFilter) in the LSP Specification for more details."
+          }
+        }
+      }
+    ],
+    "languages": [
+      {
+        "id": "dsd",
+        "aliases": [
+          "Dynamic Stack Decider",
+          "dsd"
+        ],
+        "extensions": [
+          ".dsd"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "dsd",
+        "scopeName": "source.dsd",
+        "path": "./syntaxes/dsd.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "dsd.server.restart",
+        "title": "Restart Language Server",
+        "category": "dsd"
+      },
+      {
+        "command": "dsd.server.executeCommand",
+        "title": "Execute Command",
+        "category": "dsd"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "@types/semver": "^7.5.0",
+    "@types/vscode": "^1.78.0",
+    "@typescript-eslint/eslint-plugin": "^5.3.0",
+    "@typescript-eslint/parser": "^5.3.0",
+    "eslint": "^8.2.0",
+    "typescript": "^5.1.0"
+  },
+  "dependencies": {
+    "@vscode/python-extension": "^1.0.4",
+    "semver": "^7.5.4",
+    "vscode-languageclient": "^8.1.0"
   }
 }
