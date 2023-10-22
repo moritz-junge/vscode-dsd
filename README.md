@@ -10,20 +10,24 @@ As of now, it only adds syntax highlighting but full language support including 
 ![Syntax Highlighting](./images/syntax_highlighting-3.png) <br>
 [Code Source](https://github.com/bit-bots/bitbots_behavior/blob/master/bitbots_body_behavior/bitbots_body_behavior/minimal.dsd)
 
-- Basic VS Code language features: currently only toggle comment (\[Ctrl + /\] by default).
+- Basic VS Code language features: currently only toggle comment (\[Ctrl + /\] or \[Ctrl + #\] by default).
+
+- Some language server features: currently only go to definition (\[F12\] by default) and find references (\[Shift + F12\] by default).
 
 ## Requirements
 
-As of now this extension has no requirements. This will change once further features are added so check back here when you update the extension.
+You need to have Python^1.11.1 as well as the [official python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed.
+That Python version needs to be set as your python interpreter (see [here](https://code.visualstudio.com/docs/python/environments#_select-and-activate-an-environment) for more information).
+Then you need to install the language server python package in that python environment by running `pip install --index-url https://test.pypi.org/simple/ your-package` (currently on testpy until developed further) in your terminal.
 
 ## Extension Settings
 
 As of now this extension has no settings. Mandetory settings will be added once further features are added so check back here when you update the extension.
 
-<!-- This extension contributes the following settings:
+This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something. -->
+* `dsd.client.documentSelector`: Set which files should be interpreted as DSD by the language server.
+* `pygls.trace.server`: Set logging level of the server to  VS Code Output.
 
 ## Known Issues
 
