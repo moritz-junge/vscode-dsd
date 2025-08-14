@@ -47,9 +47,7 @@ GLOBAL_SETTINGS = {}
 RUNNER = pathlib.Path(__file__).parent / "lsp_runner.py"
 
 MAX_WORKERS = 5
-LSP_SERVER = server.LanguageServer(
-    name="DSD Language Server", version="0.0.2", max_workers=MAX_WORKERS
-)
+LSP_SERVER = server.LanguageServer(name="DSD Language Server", version="0.0.2", max_workers=MAX_WORKERS)
 
 
 # **********************************************************
@@ -80,7 +78,11 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | No
     line = lines[position.line]
     word, range = find_word(line, position.character)
     log_to_output(f"word: {word}, range: {range}")
-    
+
+    # GOTO Entrypoint
+    if is_entrypoint(line, range):
+        return find_entrypoint_file_location(word)
+
     # GOTO Action
     if is_action(line, range):
         return find_action_file_location(word)
@@ -90,7 +92,7 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | No
         return find_decision_file_location(word)
 
     # GOTO Subtrees
-    if range[0] < 1 or line[range[0] - 1] != "#": # Only find references for subtrees
+    if range[0] < 1 or line[range[0] - 1] != "#":  # Only find references for subtrees
         return None
     if len(word.strip()) < 1:
         return None
@@ -102,6 +104,7 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | No
         if end_index < len(line):
             return make_location(params.text_document.uri, line_index, found_index, end_index)
 
+
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_REFERENCES)
 def find_references(params: lsp.ReferenceParams) -> List[lsp.Location] | None:
     lines = get_file_contents(params.text_document.uri)
@@ -110,7 +113,7 @@ def find_references(params: lsp.ReferenceParams) -> List[lsp.Location] | None:
     word, range = find_word(line, position.character)
     if range[0] < 1:
         return None
-    if not line[range[0] - 1] in ["#", "@"]: # Only find references for actions and subtrees
+    if not line[range[0] - 1] in ["#", "@"]:  # Only find references for actions and subtrees
         return None
     word = f"{line[range[0] - 1]}{word}"
     if len(word.strip()) < 1:
@@ -146,20 +149,32 @@ def find_word(line: str, position: int) -> tuple[str, tuple[int, int]]:
             return line[i[0] : i[1] + 1], i
     return line[position], (position, position)
 
+
 def find_word_from_position(file_lines: List[str], position: lsp.Position) -> tuple[str, tuple[int, int]]:
     return find_word(file_lines[position.line], position.character)
+
 
 def is_action(line: str, range: tuple[int, int]) -> bool:
     return range[0] > 0 and line[range[0] - 1] == "@"
 
+
 def is_decision(line: str, range: tuple[int, int]) -> bool:
     return range[0] > 0 and line[range[0] - 1] == "$"
+
+def is_entrypoint(line: str, range: tuple[int, int]) -> bool:
+    return range[0] >= 3 and line[range[0] - 3] == "-" and line[range[0] - 2] == "-" and line[range[0] - 1] == ">"
 
 def find_action_file_location(action_name: str) -> lsp.Location | None:
     return find_python_class_location(action_name, "actions")
 
+
 def find_decision_file_location(decision_name: str) -> lsp.Location | None:
     return find_python_class_location(decision_name, "decisions")
+
+
+def find_entrypoint_file_location(entrypoint_name: str) -> lsp.Location | None:
+    return find_python_class_location(entrypoint_name, "")
+
 
 def find_python_class_location(class_name: str, folder: str) -> lsp.Location | None:
     workspace_uri = LSP_SERVER.workspace.root_uri
@@ -178,14 +193,14 @@ def find_python_class_location(class_name: str, folder: str) -> lsp.Location | N
         return None  # File not found or other error, return None
 
 
-def to_snake(pascal:str) -> str:
-  """Converts a Pascal case string to snake case.
-  """
-  magic = re.findall('[A-Z]+[a-z]*', pascal)
-  snake = '_'.join(magic)
-  snake = snake.lower()
-  
-  return snake
+def to_snake(pascal: str) -> str:
+    """Converts a Pascal case string to snake case."""
+    magic = re.findall("[A-Z]+[a-z]*", pascal)
+    snake = "_".join(magic)
+    snake = snake.lower()
+
+    return snake
+
 
 # TODO: If your tool is a linter then update this section.
 # Delete "Linting features" section if your tool is NOT a linter.
@@ -378,12 +393,8 @@ def initialize(params: lsp.InitializeParams) -> None:
 
     settings = params.initialization_options["settings"]
     _update_workspace_settings(settings)
-    log_to_output(
-        f"Settings used to run Server:\r\n{json.dumps(settings, indent=4, ensure_ascii=False)}\r\n"
-    )
-    log_to_output(
-        f"Global settings:\r\n{json.dumps(GLOBAL_SETTINGS, indent=4, ensure_ascii=False)}\r\n"
-    )
+    log_to_output(f"Settings used to run Server:\r\n{json.dumps(settings, indent=4, ensure_ascii=False)}\r\n")
+    log_to_output(f"Global settings:\r\n{json.dumps(GLOBAL_SETTINGS, indent=4, ensure_ascii=False)}\r\n")
 
 
 @LSP_SERVER.feature(lsp.EXIT)
@@ -510,9 +521,7 @@ def _run_tool_on_document(
         # 'path' setting takes priority over everything.
         use_path = True
         argv = settings["path"]
-    elif settings["interpreter"] and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
+    elif settings["interpreter"] and not utils.is_current_interpreter(settings["interpreter"][0]):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
         argv = [TOOL_MODULE]
@@ -615,9 +624,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
         # 'path' setting takes priority over everything.
         use_path = True
         argv = settings["path"]
-    elif len(settings["interpreter"]) > 0 and not utils.is_current_interpreter(
-        settings["interpreter"][0]
-    ):
+    elif len(settings["interpreter"]) > 0 and not utils.is_current_interpreter(settings["interpreter"][0]):
         # If there is a different interpreter set use JSON-RPC to the subprocess
         # running under that interpreter.
         argv = [TOOL_MODULE]
@@ -667,9 +674,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
                 # with code for your tool. You can also use `utils.run_api` helper, which
                 # handles changing working directories, managing io streams, etc.
                 # Also update `_run_tool_on_document` function and `utils.run_module` in `lsp_runner.py`.
-                result = utils.run_module(
-                    module=TOOL_MODULE, argv=argv, use_stdin=True, cwd=cwd
-                )
+                result = utils.run_module(module=TOOL_MODULE, argv=argv, use_stdin=True, cwd=cwd)
             except Exception:
                 log_error(traceback.format_exc(chain=True))
                 raise
@@ -683,9 +688,7 @@ def _run_tool(extra_args: Sequence[str]) -> utils.RunResult:
 # *****************************************************
 # Logging and notification.
 # *****************************************************
-def log_to_output(
-    message: str, msg_type: lsp.MessageType = lsp.MessageType.Log
-) -> None:
+def log_to_output(message: str, msg_type: lsp.MessageType = lsp.MessageType.Log) -> None:
     LSP_SERVER.show_message_log(message, msg_type)
 
 
