@@ -141,12 +141,10 @@ def find_word(line: str, position: int) -> tuple[str, tuple[int, int]]:
     line = line.removesuffix("\n").removesuffix("\r")
     if position == len(line):
         return find_word(line, position - 1)
-    if line[position] == ":":
-        return find_word(line, position - 1)
-    word_indices = [(ele.start(), ele.end() - 1) for ele in re.finditer(r"\w+|\d+", line)]
+    word_indices = [(ele.start(), ele.end()) for ele in re.finditer(r"[A-Za-z]\w*", line)]
     for i in word_indices:
         if i[0] <= position and i[1] >= position:
-            return line[i[0] : i[1] + 1], i
+            return line[i[0] : i[1]], i
     return line[position], (position, position)
 
 
