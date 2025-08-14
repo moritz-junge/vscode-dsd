@@ -43,6 +43,9 @@ A comprehensive changelog can be found in this [changelog](./CHANGELOG.md).
 
 Initial development release, providing syntax highlighting for DSD files.
 
-<!-- ### 1.0.0
+### 0.0.2
 
-Initial release. -->
+Added new features (see [CHANGELOG.md](./CHANGELOG.md)):
+
+- Go to definition (\[F12\] by default)
+- Find references (\[Shift + F12\] by default)
