@@ -65,38 +65,6 @@
     "contributes": {
         "configuration": {
             "properties": {
-                "dsd.args": {
-                    "default": [],
-                    "description": "Arguments passed in. Each argument is a separate item in the array.",
-                    "items": {
-                        "type": "string"
-                    },
-                    "scope": "resource",
-                    "type": "array"
-                },
-                "dsd.path": {
-                    "default": [],
-                    "description": "When set to a path to dsd binary, extension will use that. NOTE: Using this option may slowdown server response time.",
-                    "scope": "resource",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "dsd.importStrategy": {
-                    "default": "useBundled",
-                    "description": "Defines where `dsd` is imported from. This setting may be ignored if `dsd.path` is set.",
-                    "enum": [
-                        "useBundled",
-                        "fromEnvironment"
-                    ],
-                    "enumDescriptions": [
-                        "Always use the bundled version of `dsd`.",
-                        "Use `dsd` from environment, fallback to bundled version only if `dsd` not available in the environment."
-                    ],
-                    "scope": "window",
-                    "type": "string"
-                },
                 "dsd.interpreter": {
                     "default": [],
                     "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
