@@ -43,15 +43,13 @@ If you find any issues not listed here, please report them on the [GitHub issue 
 A comprehensive changelog can be found in this [changelog](./CHANGELOG.md). \
 Here are some highlights:
 
-### 0.0.3
+### 0.1.0
 
-Added go to definition for entry points
-
-### 0.0.2
-
-Added new features (see [CHANGELOG.md](./CHANGELOG.md)):
+Added new language features (see [CHANGELOG.md](./CHANGELOG.md)):
 - Go to definition (\[F12\] by default)
 - Find references (\[Shift + F12\] by default)
+
+These features use a language server that now exists.
 
 ### 0.0.1
 
