@@ -10,9 +10,9 @@ As of now, it only adds syntax highlighting but full language support including 
 ![Syntax Highlighting](./images/syntax_highlighting-3.png) <br>
 [Code Source](https://github.com/bit-bots/bitbots_behavior/blob/master/bitbots_body_behavior/bitbots_body_behavior/minimal.dsd)
 
-- Basic VS Code language features: currently only toggle comment (\[Ctrl + /\] or \[Ctrl + #\] by default).
-
-- Some language server features: currently only go to definition (\[F12\] by default) and find references (\[Shift + F12\] by default).
+- Toggle comment (with \[Ctrl + /\] or \[Ctrl + #\] by default).
+- Go to definition (\[F12\] by default)
+- Find references (\[Shift + F12\] by default)
 
 ## Requirements
 
@@ -27,7 +27,7 @@ As of now this extension has no settings. Mandetory settings will be added once 
 This extension contributes the following settings:
 
 * `dsd.client.documentSelector`: Set which files should be interpreted as DSD by the language server.
-* `pygls.trace.server`: Set logging level of the server to  VS Code Output.
+* `pygls.trace.server`: Set logging level of the server to VS Code Output.
 
 ## Known Issues
 
