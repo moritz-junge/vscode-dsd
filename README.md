@@ -11,41 +11,48 @@ As of now, it only adds syntax highlighting but full language support including 
 [Code Source](https://github.com/bit-bots/bitbots_behavior/blob/master/bitbots_body_behavior/bitbots_body_behavior/minimal.dsd)
 
 - Toggle comment (with \[Ctrl + /\] or \[Ctrl + #\] by default).
-- Go to definition (\[F12\] by default)
+- Go to definition (\[F12\] by default) for some symbols:
+  - Subtrees in the DSD file
+  - Actions (jumps to their python class) - this only works for actions in [vscode-workspace-root]/actions folder.
+  - Decisions (jumps to their python class) - this only works for decisions in [vscode-workspace-root]/decisions folder.
+  - Entry points (jumps to their python class) - this only works for entry points in [vscode-workspace-root] folder.
 - Find references (\[Shift + F12\] by default)
+  - Subtrees in the DSD file
 
 ## Requirements
 
-You need to have Python^1.11.1 as well as the [official python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed.
-That Python version needs to be set as your python interpreter (see [here](https://code.visualstudio.com/docs/python/environments#_select-and-activate-an-environment) for more information).
-Then you need to install the language server python package in that python environment by running `pip install --index-url https://test.pypi.org/simple/ your-package` (currently on testpy until developed further) in your terminal.
+For advanced language features to work you need to fulfill the following requirements:
+- have the [official python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed in VS Code.
+- have python 3.9 or a newer version installed on your system.
 
 ## Extension Settings
 
-As of now this extension has no settings. Mandetory settings will be added once further features are added so check back here when you update the extension.
-
 This extension contributes the following settings:
 
-* `dsd.client.documentSelector`: Set which files should be interpreted as DSD by the language server.
-* `pygls.trace.server`: Set logging level of the server to VS Code Output.
+* `dsd.interpreter`: Use this to override which python interpreter is used for the Language Server (needs to be version 3.9 or higher).
+* `dsd.showNotifications`: Controls when notifications are shown by this extension.
 
 ## Known Issues
 
-- The name of the entrypoint is currently not highlighted.
+- The name of the entrypoint is currently not properly highlighted.
 
 If you find any issues not listed here, please report them on the [GitHub issue tracker](https://github.com/Mastermori/vscode-dsd/issues).
 
 ## Release Notes
 
-A comprehensive changelog can be found in this [changelog](./CHANGELOG.md).
+A comprehensive changelog can be found in this [changelog](./CHANGELOG.md). \
+Here are some highlights:
 
-### 0.0.1
+### 0.0.3
 
-Initial development release, providing syntax highlighting for DSD files.
+Added go to definition for entry points
 
 ### 0.0.2
 
 Added new features (see [CHANGELOG.md](./CHANGELOG.md)):
-
 - Go to definition (\[F12\] by default)
 - Find references (\[Shift + F12\] by default)
+
+### 0.0.1
+
+Initial development release, providing syntax highlighting for DSD files.
