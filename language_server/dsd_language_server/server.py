@@ -1,7 +1,7 @@
 import re
 from typing import List
 from urllib.parse import unquote, urlparse
-from pygls.server import LanguageServer
+from pygls.lsp.server import LanguageServer
 from lsprotocol import types as lsp
 import logging
 
@@ -13,7 +13,7 @@ class DSDLanguageServer(LanguageServer):
 
 logging.basicConfig(filename='dsd.log', filemode='w', level=logging.DEBUG)
 
-dsd_server = DSDLanguageServer("DSD Language Server", "v0.0.1")
+dsd_server = DSDLanguageServer("DSD Language Server", "v0.0.2")
 
 
 def start(args) -> None:
@@ -29,7 +29,7 @@ def start(args) -> None:
 ## Features
 
 @dsd_server.feature(lsp.TEXT_DOCUMENT_DEFINITION)
-def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location:
+def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | None:
     lines = get_file_contents(params.text_document.uri)
     position = params.position
     line = lines[position.line]
@@ -48,7 +48,7 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location:
             return make_location(params.text_document.uri, line_index, found_index, end_index)
 
 @dsd_server.feature(lsp.TEXT_DOCUMENT_REFERENCES)
-def find_references(params: lsp.ReferenceParams):
+def find_references(params: lsp.ReferenceParams) -> List[lsp.Location] | None:
     lines = get_file_contents(params.text_document.uri)
     position = params.position
     line = lines[position.line]
@@ -60,7 +60,7 @@ def find_references(params: lsp.ReferenceParams):
     word = f"{line[range[0] - 1]}{word}"
     if len(word.strip()) < 1:
         return None
-    found_locations = []
+    found_locations: List[lsp.Location] = []
     for line_index, line in enumerate(lines):
         found_index = line.find(word)
         if found_index < 0:
@@ -82,10 +82,10 @@ def read_file_contents(uri: str) -> List[str]:
 
 
 def get_file_contents(uri: str) -> List[str]:
-    return dsd_server.workspace.get_document(uri).lines
+    return list(dsd_server.workspace.get_text_document(uri).lines)
 
 
-def find_word(line: str, position: int) -> tuple[str, int]:
+def find_word(line: str, position: int) -> tuple[str, tuple[int, int]]:
     line = line.removesuffix("\n").removesuffix("\r")
     if position == len(line):
         return find_word(line, position - 1)
@@ -98,5 +98,5 @@ def find_word(line: str, position: int) -> tuple[str, int]:
     return line[position], (position, position)
 
 
-def find_word_from_position(file_lines: List[str], position: lsp.Position) -> tuple[str, int]:
+def find_word_from_position(file_lines: List[str], position: lsp.Position) -> tuple[str, tuple[int, int]]:
     return find_word(file_lines[position.line], position.character)
