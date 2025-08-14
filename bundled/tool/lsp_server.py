@@ -113,7 +113,7 @@ def find_references(params: lsp.ReferenceParams) -> List[lsp.Location] | None:
     word, range = find_word(line, position.character)
     if range[0] < 1:
         return None
-    if not line[range[0] - 1] in ["#", "@"]:  # Only find references for actions and subtrees
+    if not line[range[0] - 1] in ["#"]:  # Only find references for subtrees
         return None
     word = f"{line[range[0] - 1]}{word}"
     if len(word.strip()) < 1:
