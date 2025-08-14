@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Wrong Requirements from README
+- Find References for actions
 
 ## [0.0.2] - 2025-08-15
 
@@ -22,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Information about VS Code standard language features for DSD files to README
 - Basic language server written in [pygls](https://github.com/openlawlibrary/pygls) currently implements:
     - Go to definition (only for subtrees, actions and decisions)
-    - Find references (only for subtrees)
+    - Find references (only for subtrees and actions)
 - Language server client script for VS Code written in Typescript
 - Configuration for which file extensions to associate with DSD language (language server only, syntax highlighting is configured in VS Code directly)
 - Language server restart command to VS Code command palette
