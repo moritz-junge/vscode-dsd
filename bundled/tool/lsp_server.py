@@ -214,11 +214,24 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
             + (f" \n\n{comment}" if len(comment) > 0 else "")
             + (f" \n\n**Parameters**:\n{parameters_string}" if len(parameters_string) > 0 else "")
         )
+
     if is_decision(line, range):
-        comment = get_class_comment_from_location(find_decision_file_location(word))
-        return lsp.Hover(contents=f"Decision: {word}" + (f" \n\n{comment}" if len(comment) > 0 else ""))
+        decision_class_file_location = find_decision_file_location(word)
+        comment = get_class_comment_from_location(decision_class_file_location)
+        all_parameters = sorted(get_all_parameters(decision_class_file_location, "*decisions/"))
+        parameters_string = ", ".join(all_parameters) if len(all_parameters) > 0 else ""
+        cases = sorted(list(get_class_defined_cases(decision_class_file_location))) + ["ELSE"]
+        cases_string = ", ".join(cases) if len(cases) > 0 else ""
+        return lsp.Hover(
+            contents=f"### {word}\n----------"
+            + (f" \n\n{comment}" if len(comment) > 0 else "")
+            + (f" \n\n**Parameters**:\n{parameters_string}" if len(parameters_string) > 0 else "")
+            + (f" \n\n**Cases**:\n{cases_string}" if len(cases_string) > 0 else "")
+        )
+
     if is_subtree(line, range):
         return lsp.Hover(contents=f"Subtree: {word}")
+
     return None
 
 
