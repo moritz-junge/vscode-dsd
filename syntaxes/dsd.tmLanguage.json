@@ -34,7 +34,7 @@
 			"patterns": [
 				{
 					"name": "entity.name.type.class.dsd",
-					"match": "(\\$[A-Za-z]+)\\b"
+					"match": "(\\$[A-Za-z_]+)\\b"
 				},
 				{
 					"name": "entity.name.variable.dsd",
@@ -46,7 +46,7 @@
 			"patterns": [
 				{
 					"name": "entity.name.function.dsd",
-					"match": "(#[A-Za-z]+)\\b"
+					"match": "(#[A-Za-z_]+)\\b"
 				}
 			]
 		},
@@ -54,7 +54,7 @@
 			"patterns": [
 				{
 					"name": "keyword.control.dsd",
-					"match": "(@[A-Za-z]+)\\b"
+					"match": "(@[A-Za-z_]+)\\b"
 				}
 			]
 		},
@@ -62,7 +62,7 @@
 			"patterns": [
 				{
 					"name": "meta.function-call.arguments.dsd",
-					"begin": "\\+\\s+([A-Za-z]+):",
+					"begin": "\\+\\s+([A-Za-z_]+):",
 					"beginCaptures": {
 						"1": {
 							"name": "variable.function-call.parameter.dsd"
