@@ -12,6 +12,7 @@ export interface ISettings {
     path: string[];
     interpreter: string[];
     importStrategy: string;
+    decisionCaseMatching: string;
     showNotifications: string;
 }
 
@@ -68,6 +69,7 @@ export async function getWorkspaceSettings(
         path: resolveVariables(config.get<string[]>(`path`) ?? [], workspace),
         interpreter: resolveVariables(interpreter, workspace),
         importStrategy: config.get<string>(`importStrategy`) ?? 'useBundled',
+        decisionCaseMatching: config.get<string>(`decisionCaseMatching`) ?? 'strict',
         showNotifications: config.get<string>(`showNotifications`) ?? 'off',
     };
     return workspaceSetting;
@@ -96,6 +98,7 @@ export async function getGlobalSettings(namespace: string, includeInterpreter?: 
         path: getGlobalValue<string[]>(config, 'path', []),
         interpreter: interpreter,
         importStrategy: getGlobalValue<string>(config, 'importStrategy', 'useBundled'),
+        decisionCaseMatching: getGlobalValue<string>(config, 'decisionCaseMatching', 'strict'),
         showNotifications: getGlobalValue<string>(config, 'showNotifications', 'off'),
     };
     return setting;
@@ -107,6 +110,7 @@ export function checkIfConfigurationChanged(e: ConfigurationChangeEvent, namespa
         `${namespace}.path`,
         `${namespace}.interpreter`,
         `${namespace}.importStrategy`,
+        `${namespace}.decisionCaseMatching`,
         `${namespace}.showNotifications`,
     ];
     const changed = settings.map((s) => e.affectsConfiguration(s));

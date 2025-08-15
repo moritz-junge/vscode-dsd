@@ -65,6 +65,20 @@
     "contributes": {
         "configuration": {
             "properties": {
+                "dsd.decisionCaseMatching": {
+                    "default": "strict",
+                    "description": "When set to true, the extension will perform loose matching for finding cases of decisions in python files.",
+                    "enum": [
+                        "strict",
+                        "loose"
+                    ],
+                    "enumDescriptions": [
+                        "Matches any returned UPPER_CASE strings inside the decision python class as cases for the decision",
+                        "Matches any UPPER_CASE strings inside the decision python class as cases for the decision, even if they are not returned."
+                    ],
+                    "scope": "resource",
+                    "type": "string"
+                },
                 "dsd.interpreter": {
                     "default": [],
                     "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
