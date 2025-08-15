@@ -43,6 +43,14 @@ This extension contributes the following settings:
 * `dsd.interpreter`: Use this to override which python interpreter is used for the Language Server (needs to be version 3.9 or higher).
 * `dsd.showNotifications`: Controls when notifications are shown by this extension.
 
+## Planned Features
+
+- Formatting for dsd files
+- Basic error detection (through parser)
+- Better autocompletion for decisions (automatically inserting cases)
+
+Let me know if you have any more ideas for other features (by opening a [GitHub issue](https://github.com/Mastermori/vscode-dsd/issues) with the "feature request" tag).
+
 ## Known Issues
 
 None right now :)
