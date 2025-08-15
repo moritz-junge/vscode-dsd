@@ -70,6 +70,41 @@ TOOL_ARGS = []  # default arguments always passed to your tool.
 
 
 ## Features
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_HOVER)
+def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
+    lines = get_file_contents(params.text_document.uri)
+    position = params.position
+    line = lines[position.line]
+    word, range = find_word(line, position.character)
+    if is_entrypoint(line, range):
+        comment = get_class_comment_from_location(find_entrypoint_file_location(word))
+        return lsp.Hover(contents=f"Entrypoint: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+    if is_action(line, range):
+        comment = get_class_comment_from_location(find_action_file_location(word))
+        return lsp.Hover(contents=f"Action: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+    if is_decision(line, range):
+        comment = get_class_comment_from_location(find_decision_file_location(word))
+        return lsp.Hover(contents=f"Decision: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+    if is_subtree(line, range):
+        return lsp.Hover(contents=f"Subtree: {word}")
+    return None
+
+
+def get_class_comment_from_location(location: lsp.Location) -> str:
+    class_file = LSP_SERVER.workspace.get_text_document(location.uri)
+    comment_line = location.range.end.line + 1
+    if len(class_file.lines) <= comment_line:
+        return ""  # File ends after class definition
+    return get_class_comment(class_file, comment_line)
+
+
+def get_class_comment(file: TextDocument, start_line: int) -> str:
+    content = "".join(file.lines[start_line:])
+    match = re.search(r'\A\s*"""([\w\W]*?)"""', content)
+    comment = match.group(1).strip() if match else ""
+    return comment.replace("\n", " \\\n")
+
+
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DEFINITION)
 def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | None:
     lines = get_file_contents(params.text_document.uri)
