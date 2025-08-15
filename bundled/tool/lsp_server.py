@@ -122,12 +122,16 @@ def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.Completion
         decision_name = ""
         for i in range(position.line - 1, -1, -1):
             current_line = lines[i]
+            if current_line.strip() == "":
+                break
             current_indentation = len(current_line) - len(current_line.lstrip())
+            if current_indentation == 0 and not current_line.strip().startswith("$"):
+                break
             if current_indentation >= case_indentation:
                 continue
-            match = re.search(r'\$([A-Za-z_]+)\s*$', current_line)
+            match = re.search(r"\$([A-Za-z_]+)(?:\s*+\s*[A-Za-z_]+:[A-Za-z0-9_]+)*|\s*$", current_line)
             if match is None:
-                continue
+                break
             decision_name = match.group(1)
             break
         if decision_name != "":
@@ -195,9 +199,11 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
     position = params.position
     line = lines[position.line]
     word, range = find_word(line, position.character)
+
     if is_entrypoint(line, range):
         comment = get_class_comment_from_location(find_entrypoint_file_location(word))
         return lsp.Hover(contents=f"Entrypoint: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+
     if is_action(line, range):
         action_class_file_location = find_action_file_location(word)
         comment = get_class_comment_from_location(action_class_file_location)
