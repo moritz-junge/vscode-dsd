@@ -5,6 +5,21 @@ All notable changes to this extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-08-16
+
+### Added
+- Autocompletion for action, decision and subtree names
+- Autocompletion for action and decision parameters (after a `+`)
+- Autocompletion for decision cases (in a new line after a decision)
+- Hover documentation now includes parameters for actions and decisions and cases for decisions
+- Setting to switch between strict and loose matching for decision case names
+
+### Changes
+- Now uses ``ast`` python package to search for python classes instead of regular expressions
+
+### Fixed
+- Syntax-highlighting should now work correctly for UPPER_CASE action, decision and subtree names
+
 ## [0.1.1] - 2025-08-15
 
 ### Added

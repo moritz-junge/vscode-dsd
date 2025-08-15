@@ -20,32 +20,44 @@ This Extension is still under active development and will include more features 
 - Find references (\[Shift + F12\] by default)
   - Subtrees in the DSD file
 - Hover documentation
-  - Shows documentation for Actions,  Decisions and Entrypoints
+  - Shows documentation for Actions, Decisions and Entrypoints
     - Displays the docstring of the corresponding Python class or file in case of Entrypoints
+    - Actions additionally display their parameters
+    - Decisions additionally display their parameters and cases
+- Autocompletion for actions, decisions and subtrees:
+  - Names of actions, decisions and subtrees (triggered by  `@`, `$`, `#`)
+  - Parameters for actions and decisions (triggered by `+`)
+  - Cases for decisions (in a new line after a decision)
 
 ## Requirements
 
-For advanced language features to work you need to fulfill the following requirements:
-- have the [official python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) installed in VS Code.
-- have python 3.9 or a newer version installed on your system.
+For advanced language features to work, this is required:
+- The [official python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) needs to be installed in VS Code.
+- Python 3.9 or a newer needs to be installed on your system.
 
 ## Extension Settings
 
 This extension contributes the following settings:
 
+* `dsd.decisionCaseMatching`: Controls how decision case names are matched (strict or loose).
 * `dsd.interpreter`: Use this to override which python interpreter is used for the Language Server (needs to be version 3.9 or higher).
 * `dsd.showNotifications`: Controls when notifications are shown by this extension.
 
 ## Known Issues
 
-- The name of the entrypoint is currently not properly highlighted.
+None right now :)
 
 If you find any issues not listed here, please report them on the [GitHub issue tracker](https://github.com/Mastermori/vscode-dsd/issues).
 
 ## Release Notes
 
-A comprehensive changelog can be found in this [changelog](./CHANGELOG.md). \
+A comprehensive changelog can be found [here](./CHANGELOG.md). \
 Here are some highlights:
+
+### 0.2.0
+
+- Added Autocompletion for actions, decisions and subtrees
+- Improved hover documentation
 
 ### 0.1.1
 
