@@ -18,6 +18,9 @@ As of now, it only adds syntax highlighting but full language support including 
   - Entry points (jumps to their python class) - this only works for entry points in [vscode-workspace-root] folder.
 - Find references (\[Shift + F12\] by default)
   - Subtrees in the DSD file
+- Hover documentation
+  - Shows documentation for Actions,  Decisions and Entrypoints
+    - Displays the docstring of the corresponding Python class or file in case of Entrypoints
 
 ## Requirements
 
@@ -42,6 +45,10 @@ If you find any issues not listed here, please report them on the [GitHub issue 
 
 A comprehensive changelog can be found in this [changelog](./CHANGELOG.md). \
 Here are some highlights:
+
+### 0.1.1
+
+Added Hover documentation for Actions and Decisions.
 
 ### 0.1.0
 
