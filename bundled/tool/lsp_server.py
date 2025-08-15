@@ -140,7 +140,7 @@ def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.Completion
                     lambda case: lsp.CompletionItem(
                         label=case, insert_text=f"{case} --> ", kind=lsp.CompletionItemKind.Enum
                     ),
-                    sorted(list(get_class_defined_cases(find_decision_file_location(decision_name))) + ["ELSE"]),
+                    sorted(list(get_class_defined_cases(find_decision_file_location(decision_name)))) + ["ELSE"],
                 )
             )
     return lsp.CompletionList(is_incomplete=False, items=items)
@@ -155,7 +155,7 @@ def get_action_parameters(line: str, prefix_position: int) -> Set[str]:
             break
     if action_name == "":
         return set()
-    return sorted(get_all_parameters(find_action_file_location(action_name), "*actions/") + ["r", "reevaluate"])
+    return sorted(get_all_parameters(find_action_file_location(action_name), "*actions/")) + ["r", "reevaluate"]
 
 
 def get_all_actions() -> Set[str]:
@@ -207,7 +207,7 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
     if is_action(line, range):
         action_class_file_location = find_action_file_location(word)
         comment = get_class_comment_from_location(action_class_file_location)
-        all_parameters = sorted(get_all_parameters(action_class_file_location, "*actions/") + ["r / reevaluate"])
+        all_parameters = sorted(get_all_parameters(action_class_file_location, "*actions/")) + ["r / reevaluate"]
         parameters_string = ", ".join(all_parameters) if len(all_parameters) > 0 else ""
         return lsp.Hover(
             contents=f"### {word}\n----------"
