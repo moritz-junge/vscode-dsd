@@ -3,7 +3,6 @@
 """Implementation of tool support over LSP."""
 from __future__ import annotations
 
-import ast
 import copy
 import json
 import os
@@ -11,7 +10,6 @@ import pathlib
 import re
 import sys
 import traceback
-from typing import Any, List, Optional, Sequence, Set
 
 
 # **********************************************************
@@ -39,6 +37,8 @@ update_sys_path(
 import lsp_jsonrpc as jsonrpc
 import lsp_utils as utils
 import lsprotocol.types as lsp
+import ast
+from typing import Any, List, Optional, Sequence, Set
 from pygls import server, uris, workspace
 from pygls.workspace.text_document import TextDocument
 
@@ -99,6 +99,7 @@ def get_all_actions() -> Set[str]:
 def get_all_decisions() -> Set[str]:
     return get_classes_in_python_files("*decisions/")
 
+
 def get_all_subtrees_in(lines: List[str]) -> Set[str]:
     subtree_names = set()
     for line in lines:
@@ -136,11 +137,20 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
         comment = get_class_comment_from_location(find_entrypoint_file_location(word))
         return lsp.Hover(contents=f"Entrypoint: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
     if is_action(line, range):
-        comment = get_class_comment_from_location(find_action_file_location(word))
-        return lsp.Hover(contents=f"Action: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+        action_class_file_location = find_action_file_location(word)
+        comment = get_class_comment_from_location(action_class_file_location)
+        parameters = get_class_defined_parameters(action_class_file_location)
+        inherited_parameters = get_inherited_parameters(action_class_file_location, "*actions/")
+        all_parameters = sorted(list(parameters.union(inherited_parameters).union(set(["r / reevaluate"]))))
+        parameters_string = ", ".join(all_parameters) if len(all_parameters) > 0 else ""
+        return lsp.Hover(
+            contents=f"### {word}\n----------"
+            + (f" \n\n{comment}" if len(comment) > 0 else "")
+            + (f" \n\n**Parameters**:\n{parameters_string}" if len(parameters_string) > 0 else "")
+        )
     if is_decision(line, range):
         comment = get_class_comment_from_location(find_decision_file_location(word))
-        return lsp.Hover(contents=f"Decision: {word}" + (f" \n\n_{comment}_" if len(comment) > 0 else ""))
+        return lsp.Hover(contents=f"Decision: {word}" + (f" \n\n{comment}" if len(comment) > 0 else ""))
     if is_subtree(line, range):
         return lsp.Hover(contents=f"Subtree: {word}")
     return None
@@ -161,6 +171,56 @@ def get_class_comment(file: TextDocument, start_line: int) -> str:
     match = re.search(r'\A\s*"""([\w\W]*?)"""', content)
     comment = match.group(1).strip() if match else ""
     return comment.replace("\n", " \\\n")
+
+
+def get_inherited_parameters(location: lsp.Location, search_folder: str) -> set[str]:
+    if location is None:
+        return set()
+    parent_class_location = get_parent_class(location, search_folder)
+    if parent_class_location is None:
+        return set()
+    return get_class_defined_parameters(parent_class_location).union(
+        get_inherited_parameters(parent_class_location, search_folder)
+    )
+
+
+def get_parent_class(location: lsp.Location, search_folder: str) -> lsp.Location | None:
+    if location is None:
+        return None
+    class_file = LSP_SERVER.workspace.get_text_document(location.uri)
+    class_definition_line = class_file.lines[location.range.start.line]
+    match = re.match(r"^\s*class\s+\w+\s*\((\w+)\)", class_definition_line)
+    if match is not None:
+        parent_class_name = match.group(1)
+        return find_class_in_python_files(parent_class_name, search_folder)
+    return None
+
+
+def get_class_defined_parameters(location: lsp.Location) -> set[str]:
+    if location is None:
+        return set()
+    class_file = LSP_SERVER.workspace.get_text_document(location.uri)
+    class_definition_line = location.range.start.line
+    return get_parameters_in_lines(get_class_definition_lines(class_file.lines, class_definition_line))
+
+
+def get_class_definition_lines(lines: list[str], start_line: int) -> list[str]:
+    class_lines = [lines[start_line]]
+    if len(lines) - 1 == start_line:
+        return class_lines
+    for line in lines[start_line + 1 :]:
+        if re.match(r'^(?:\s+)|^#|^"""', line) is None:
+            break
+        class_lines.append(line)
+    return class_lines
+
+
+def get_parameters_in_lines(lines: list[str]) -> set[str]:
+    parameters = set()
+    matches = re.finditer(r'parameters\.get\((?:["]([A-Za-z_]+?)["]|[\']([A-Za-z_]+?)[\'])', "\n".join(lines))
+    for match in matches:
+        parameters.add(match.group(1) or match.group(2))
+    return parameters
 
 
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DEFINITION)
