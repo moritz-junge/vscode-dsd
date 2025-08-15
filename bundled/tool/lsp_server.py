@@ -3,6 +3,7 @@
 """Implementation of tool support over LSP."""
 from __future__ import annotations
 
+import ast
 import copy
 import json
 import os
@@ -115,17 +116,13 @@ def get_classes_in_python_files(folder: str) -> Set[str]:
     python_files = get_all_python_files_in(folder)
     class_names = set()
     for document in python_files:
-        if document.lines is None:
-            continue
-        for line in document.lines:
-            if not line.startswith("class "):
+        tree = ast.parse(document.source)
+        for element in tree.body:
+            if not isinstance(element, ast.ClassDef):
                 continue
-            match = re.match(r"class\s+(\w+)s*\(", line)
-            if match:
-                class_name = match.group(1)
-                if class_name.lower().startswith("abstract"):
-                    continue  # Skip abstract classes
-                class_names.add(class_name)
+            if element.name.lower().startswith("abstract"):
+                continue  # Skip abstract classes
+            class_names.add(element.name)
     return class_names
 
 
