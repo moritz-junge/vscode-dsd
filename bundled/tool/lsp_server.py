@@ -71,25 +71,87 @@ TOOL_ARGS = []  # default arguments always passed to your tool.
 
 
 ## Features
-@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_COMPLETION, lsp.CompletionOptions(trigger_characters=["@", "$", "#"]))
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_COMPLETION, lsp.CompletionOptions(trigger_characters=["@", "$", "#", "+", " "]))
 def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.CompletionList | None:
     log_to_output("Completions requested")
     items = []
     lines = get_file_contents(params.text_document.uri)
     position = params.position
     line = lines[position.line]
-    _, range = find_word_from_position(lines, position)
-    if range[0] < 1:
+    _, word_range = find_word_from_position(lines, position)
+    if word_range[0] < 1:
         return None
-    cursor_word_prefix = line[range[0] - 1]
-    if cursor_word_prefix == "@":
-        items.extend(map(lambda action: lsp.CompletionItem(label=action), get_all_actions()))
-    if cursor_word_prefix == "$":
-        items.extend(map(lambda decision: lsp.CompletionItem(label=decision), get_all_decisions()))
-    if cursor_word_prefix == "#" and not range[0] - 1 == 0:
-        items.extend(map(lambda subtree: lsp.CompletionItem(label=subtree), get_all_subtrees_in(lines)))
-
+    search_index = word_range[0] - 1
+    cursor_word_prefix = line[search_index]
+    while cursor_word_prefix.strip() == "":
+        search_index -= 1
+        cursor_word_prefix = line[search_index]
+        if search_index - 1 < 0:
+            cursor_word_prefix = ""
+            search_index = 0
+            break
+    if cursor_word_prefix == "@":  # Action
+        items.extend(
+            map(lambda action: lsp.CompletionItem(label=action, kind=lsp.CompletionItemKind.Method), get_all_actions())
+        )
+    if cursor_word_prefix == "$":  # Decision
+        items.extend(
+            map(
+                lambda decision: lsp.CompletionItem(label=decision, kind=lsp.CompletionItemKind.Interface),
+                get_all_decisions(),
+            )
+        )
+    if cursor_word_prefix == "#" and not word_range[0] - 1 == 0:  # Subtree
+        items.extend(
+            map(
+                lambda subtree: lsp.CompletionItem(label=subtree, kind=lsp.CompletionItemKind.Function),
+                get_all_subtrees_in(lines),
+            )
+        )
+    if cursor_word_prefix == "+":  # Action parameter
+        items.extend(
+            map(
+                lambda parameter: lsp.CompletionItem(
+                    label=parameter, insert_text=f"{parameter}:", kind=lsp.CompletionItemKind.Variable
+                ),
+                get_action_parameters(line, search_index),
+            )
+        )
+    if cursor_word_prefix == "" and position.line > 0:  # Maybe Decision Case
+        case_indentation = len(line) - len(line.lstrip()) - 1
+        decision_name = ""
+        for i in range(position.line - 1, -1, -1):
+            current_line = lines[i]
+            current_indentation = len(current_line) - len(current_line.lstrip())
+            if current_indentation >= case_indentation:
+                continue
+            match = re.search(r'\$([A-Za-z_]+)\s*$', current_line)
+            if match is None:
+                continue
+            decision_name = match.group(1)
+            break
+        if decision_name != "":
+            items.extend(
+                map(
+                    lambda case: lsp.CompletionItem(
+                        label=case, insert_text=f"{case} --> ", kind=lsp.CompletionItemKind.Enum
+                    ),
+                    sorted(list(get_class_defined_cases(find_decision_file_location(decision_name))) + ["ELSE"]),
+                )
+            )
     return lsp.CompletionList(is_incomplete=False, items=items)
+
+
+def get_action_parameters(line: str, prefix_position: int) -> Set[str]:
+    # Find the first action name before the cursor
+    action_name = ""
+    for i in range(prefix_position - 1, -1, -1):
+        if line[i] == "@":
+            action_name, _ = find_word(line, i + 1)
+            break
+    if action_name == "":
+        return set()
+    return sorted(get_all_parameters(find_action_file_location(action_name), "*actions/") + ["r", "reevaluate"])
 
 
 def get_all_actions() -> Set[str]:
@@ -139,9 +201,7 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
     if is_action(line, range):
         action_class_file_location = find_action_file_location(word)
         comment = get_class_comment_from_location(action_class_file_location)
-        parameters = get_class_defined_parameters(action_class_file_location)
-        inherited_parameters = get_inherited_parameters(action_class_file_location, "*actions/")
-        all_parameters = sorted(list(parameters.union(inherited_parameters).union(set(["r / reevaluate"]))))
+        all_parameters = sorted(get_all_parameters(action_class_file_location, "*actions/") + ["r / reevaluate"])
         parameters_string = ", ".join(all_parameters) if len(all_parameters) > 0 else ""
         return lsp.Hover(
             contents=f"### {word}\n----------"
@@ -173,6 +233,15 @@ def get_class_comment(file: TextDocument, start_line: int) -> str:
     return comment.replace("\n", " \\\n")
 
 
+def get_all_parameters(location: lsp.Location, search_folder: str) -> list[str]:
+    if location is None:
+        return []
+    parameters = get_class_defined_parameters(location)
+    inherited_parameters = get_inherited_parameters(location, search_folder)
+    all_parameters = sorted(list(parameters.union(inherited_parameters)))
+    return all_parameters
+
+
 def get_inherited_parameters(location: lsp.Location, search_folder: str) -> set[str]:
     if location is None:
         return set()
@@ -194,6 +263,14 @@ def get_parent_class(location: lsp.Location, search_folder: str) -> lsp.Location
         parent_class_name = match.group(1)
         return find_class_in_python_files(parent_class_name, search_folder)
     return None
+
+
+def get_class_defined_cases(location: lsp.Location) -> set[str]:
+    if location is None:
+        return set()
+    class_file = LSP_SERVER.workspace.get_text_document(location.uri)
+    class_definition_line = location.range.start.line
+    return get_cases_in_lines(get_class_definition_lines(class_file.lines, class_definition_line))
 
 
 def get_class_defined_parameters(location: lsp.Location) -> set[str]:
@@ -221,6 +298,17 @@ def get_parameters_in_lines(lines: list[str]) -> set[str]:
     for match in matches:
         parameters.add(match.group(1) or match.group(2))
     return parameters
+
+
+def get_cases_in_lines(lines: list[str]) -> set[str]:
+    match_expression = r'return (?:[\']([A-Z_]+)[\']|["]([A-Z_]+)["])'
+    if GLOBAL_SETTINGS.get("decisionCaseMatching", "strict") == "loose":
+        match_expression = r'(?:[\']([A-Z_]+)[\']|["]([A-Z_]+)["])'
+    cases = set()
+    matches = re.finditer(match_expression, "\n".join(lines))
+    for match in matches:
+        cases.add(match.group(1) or match.group(2))
+    return cases
 
 
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_DEFINITION)
@@ -591,6 +679,7 @@ def _get_global_defaults():
         "interpreter": GLOBAL_SETTINGS.get("interpreter", [sys.executable]),
         "args": GLOBAL_SETTINGS.get("args", []),
         "importStrategy": GLOBAL_SETTINGS.get("importStrategy", "useBundled"),
+        "decisionCaseMatching": GLOBAL_SETTINGS.get("decisionCaseMatching", "strict"),
         "showNotifications": GLOBAL_SETTINGS.get("showNotifications", "off"),
     }
 
