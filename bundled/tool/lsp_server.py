@@ -114,6 +114,14 @@ def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.Completion
                 lambda parameter: lsp.CompletionItem(
                     label=parameter, insert_text=f"{parameter}:", kind=lsp.CompletionItemKind.Variable
                 ),
+                get_decision_parameters(line, search_index),
+            )
+        )
+        items.extend(
+            map(
+                lambda parameter: lsp.CompletionItem(
+                    label=parameter, insert_text=f"{parameter}:", kind=lsp.CompletionItemKind.Variable
+                ),
                 get_action_parameters(line, search_index),
             )
         )
@@ -144,6 +152,18 @@ def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.Completion
                 )
             )
     return lsp.CompletionList(is_incomplete=False, items=items)
+
+
+def get_decision_parameters(line: str, prefix_position: int) -> Set[str]:
+    # Find the first action name before the cursor
+    decision_name = ""
+    for i in range(prefix_position - 1, -1, -1):
+        if line[i] == "$":
+            decision_name, _ = find_word(line, i + 1)
+            break
+    if decision_name == "":
+        return set()
+    return sorted(get_all_parameters(find_decision_file_location(decision_name), "*decisions/"))
 
 
 def get_action_parameters(line: str, prefix_position: int) -> Set[str]:
