@@ -1,7 +1,8 @@
 # DSD VSCode Extension
 
 This extension adds language support for the Dynamic Stack Decider ([DSD](https://github.com/bit-bots/dynamic_stack_decider)) language.
-As of now, it only adds syntax highlighting but full language support including auto-completion, auto-formatting and more is planned.
+
+This Extension is still under active development and will include more features in the future.
 
 ## Features
 
@@ -48,16 +49,17 @@ Here are some highlights:
 
 ### 0.1.1
 
-Added Hover documentation for Actions and Decisions.
+- Added Hover documentation for Actions and Decisions.
+- Improved searching for actions and decisions in Python files.
 
 ### 0.1.0
 
-Added new language features (see [CHANGELOG.md](./CHANGELOG.md)):
-- Go to definition (\[F12\] by default)
-- Find references (\[Shift + F12\] by default)
+- Added new language features (see [CHANGELOG.md](./CHANGELOG.md)):
+  - Go to definition (\[F12\] by default)
+  - Find references (\[Shift + F12\] by default)
 
 These features use a language server that now exists.
 
 ### 0.0.1
 
-Initial development release, providing syntax highlighting for DSD files.
+- Initial development release, providing syntax highlighting for DSD files.

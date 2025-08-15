@@ -5,6 +5,18 @@ All notable changes to this extension will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-08-15
+
+### Added
+- Hover documentation for actions, decisions, and entry points
+
+### Changed
+- Parsing python files should work more reliably now.
+  - Now parses all actions in any folder ending with actions
+  - Now parses all decisions in any folder ending with decisions
+  - Now parses all entry points in any folder if the name is the snake_case version of the PascalCase Entrypoint in DSD
+  - Allow multiple Actions/Decisions in one file by searching for classes in found python files instead of only checking filename
+
 ## [0.1.0] - 2025-08-15
 
 This Release exists as a substitute for 0.0.2 and 0.0.3 to correct version naming.
