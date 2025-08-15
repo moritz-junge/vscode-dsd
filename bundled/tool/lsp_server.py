@@ -10,7 +10,7 @@ import pathlib
 import re
 import sys
 import traceback
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional, Sequence, Set
 
 
 # **********************************************************
@@ -70,6 +70,65 @@ TOOL_ARGS = []  # default arguments always passed to your tool.
 
 
 ## Features
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_COMPLETION, lsp.CompletionOptions(trigger_characters=["@", "$", "#"]))
+def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.CompletionList | None:
+    log_to_output("Completions requested")
+    items = []
+    lines = get_file_contents(params.text_document.uri)
+    position = params.position
+    line = lines[position.line]
+    _, range = find_word_from_position(lines, position)
+    if range[0] < 1:
+        return None
+    cursor_word_prefix = line[range[0] - 1]
+    if cursor_word_prefix == "@":
+        items.extend(map(lambda action: lsp.CompletionItem(label=action), get_all_actions()))
+    if cursor_word_prefix == "$":
+        items.extend(map(lambda decision: lsp.CompletionItem(label=decision), get_all_decisions()))
+    if cursor_word_prefix == "#" and not range[0] - 1 == 0:
+        items.extend(map(lambda subtree: lsp.CompletionItem(label=subtree), get_all_subtrees_in(lines)))
+
+    return lsp.CompletionList(is_incomplete=False, items=items)
+
+
+def get_all_actions() -> Set[str]:
+    return get_classes_in_python_files("*actions/")
+
+
+def get_all_decisions() -> Set[str]:
+    return get_classes_in_python_files("*decisions/")
+
+def get_all_subtrees_in(lines: List[str]) -> Set[str]:
+    subtree_names = set()
+    for line in lines:
+        if not line.startswith("#"):
+            continue
+        match = re.match(r"#(\w+)", line)
+        if not match:
+            continue
+        subtree_name = match.group(1)
+        subtree_names.add(subtree_name)
+    return subtree_names
+
+
+def get_classes_in_python_files(folder: str) -> Set[str]:
+    python_files = get_all_python_files_in(folder)
+    class_names = set()
+    for document in python_files:
+        if document.lines is None:
+            continue
+        for line in document.lines:
+            if not line.startswith("class "):
+                continue
+            match = re.match(r"class\s+(\w+)s*\(", line)
+            if match:
+                class_name = match.group(1)
+                if class_name.lower().startswith("abstract"):
+                    continue  # Skip abstract classes
+                class_names.add(class_name)
+    return class_names
+
+
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_HOVER)
 def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
     lines = get_file_contents(params.text_document.uri)
@@ -91,6 +150,8 @@ def hover(params: lsp.TextDocumentPositionParams) -> lsp.Hover | None:
 
 
 def get_class_comment_from_location(location: lsp.Location) -> str:
+    if location is None:
+        return ""
     class_file = LSP_SERVER.workspace.get_text_document(location.uri)
     comment_line = location.range.end.line + 1
     if len(class_file.lines) <= comment_line:
@@ -174,12 +235,12 @@ def get_file_contents(uri: str) -> List[str]:
 
 def find_word(line: str, position: int) -> tuple[str, tuple[int, int]]:
     line = line.removesuffix("\n").removesuffix("\r")
-    if position == len(line):
-        return find_word(line, position - 1)
     word_indices = [(ele.start(), ele.end()) for ele in re.finditer(r"[A-Za-z]\w*", line)]
     for i in word_indices:
         if i[0] <= position and i[1] >= position:
             return line[i[0] : i[1]], i
+    if position == len(line):
+        return "", (position, position)
     return line[position], (position, position)
 
 
@@ -234,10 +295,13 @@ def find_class_in_python_files(class_name: str, folder: str) -> lsp.Location | N
         if document.lines is None:
             continue
         for line_index, line in enumerate(document.lines):
-            if class_name not in line:
+            match = re.match(r"class\s+(\w+)\s*\(", line)
+            if not match:
                 continue
-            start_index = line.index(class_name)
-            end_index = start_index + len(class_name)
+            if class_name != match.group(1):
+                continue
+            start_index = match.start(1)
+            end_index = match.end(1)
             return make_location(document.uri, line_index, start_index, end_index)
     if direct_file is not None:
         return make_location(direct_file.uri, 0, 0, 0)
