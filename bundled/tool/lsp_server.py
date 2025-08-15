@@ -9,7 +9,6 @@ import os
 import pathlib
 import re
 import sys
-import sysconfig
 import traceback
 from typing import Any, List, Optional, Sequence
 
@@ -39,8 +38,8 @@ update_sys_path(
 import lsp_jsonrpc as jsonrpc
 import lsp_utils as utils
 import lsprotocol.types as lsp
-from urllib.parse import unquote, urlparse
 from pygls import server, uris, workspace
+from pygls.workspace.text_document import TextDocument
 
 WORKSPACE_SETTINGS = {}
 GLOBAL_SETTINGS = {}
@@ -79,6 +78,9 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | No
     word, range = find_word(line, position.character)
     log_to_output(f"word: {word}, range: {range}")
 
+    if len(word.strip()) < 1:
+        return None
+
     # GOTO Entrypoint
     if is_entrypoint(line, range):
         return find_entrypoint_file_location(word)
@@ -92,9 +94,7 @@ def goto_definition(params: lsp.TextDocumentPositionParams) -> lsp.Location | No
         return find_decision_file_location(word)
 
     # GOTO Subtrees
-    if range[0] < 1 or line[range[0] - 1] != "#":  # Only find references for subtrees
-        return None
-    if len(word.strip()) < 1:
+    if not is_subtree(line, range):
         return None
     for line_index, line in enumerate(lines):
         found_index = line.find(f"#{word}")
@@ -152,6 +152,10 @@ def find_word_from_position(file_lines: List[str], position: lsp.Position) -> tu
     return find_word(file_lines[position.line], position.character)
 
 
+def is_subtree(line: str, range: tuple[int, int]) -> bool:
+    return range[0] > 0 and line[range[0] - 1] == "#"
+
+
 def is_action(line: str, range: tuple[int, int]) -> bool:
     return range[0] > 0 and line[range[0] - 1] == "@"
 
@@ -159,36 +163,21 @@ def is_action(line: str, range: tuple[int, int]) -> bool:
 def is_decision(line: str, range: tuple[int, int]) -> bool:
     return range[0] > 0 and line[range[0] - 1] == "$"
 
+
 def is_entrypoint(line: str, range: tuple[int, int]) -> bool:
     return range[0] >= 3 and line[range[0] - 3] == "-" and line[range[0] - 2] == "-" and line[range[0] - 1] == ">"
 
+
 def find_action_file_location(action_name: str) -> lsp.Location | None:
-    return find_python_class_location(action_name, "actions")
+    return find_class_in_python_files(action_name, "*actions/")
 
 
 def find_decision_file_location(decision_name: str) -> lsp.Location | None:
-    return find_python_class_location(decision_name, "decisions")
+    return find_class_in_python_files(decision_name, "*decisions/")
 
 
 def find_entrypoint_file_location(entrypoint_name: str) -> lsp.Location | None:
-    return find_python_class_location(entrypoint_name, "")
-
-
-def find_python_class_location(class_name: str, folder: str) -> lsp.Location | None:
-    workspace_uri = LSP_SERVER.workspace.root_uri
-    action_file_name = to_snake(class_name)
-    file_path = f"{workspace_uri}/{folder}/{action_file_name}.py"
-    try:
-        file = LSP_SERVER.workspace.get_text_document(file_path)
-        if file.lines is not None:
-            for line_index, line in enumerate(file.lines):
-                if class_name in line:
-                    start_index = line.index(class_name)
-                    end_index = start_index + len(class_name)
-                    return make_location(file.uri, line_index, start_index, end_index)
-            return make_location(file.uri, 0, 0, 0)
-    except Exception as e:
-        return None  # File not found or other error, return None
+    return find_class_in_python_files(entrypoint_name, "")
 
 
 def to_snake(pascal: str) -> str:
@@ -198,6 +187,39 @@ def to_snake(pascal: str) -> str:
     snake = snake.lower()
 
     return snake
+
+
+def find_class_in_python_files(class_name: str, folder: str) -> lsp.Location | None:
+    """Finds a class in all Python files within a specific folder."""
+    python_files = get_all_python_files_in(folder)
+    direct_file = None
+    for document in python_files:
+        if document.filename.replace(".py", "") == to_snake(class_name):
+            direct_file = document
+        if document.lines is None:
+            continue
+        for line_index, line in enumerate(document.lines):
+            if class_name not in line:
+                continue
+            start_index = line.index(class_name)
+            end_index = start_index + len(class_name)
+            return make_location(document.uri, line_index, start_index, end_index)
+    if direct_file is not None:
+        return make_location(direct_file.uri, 0, 0, 0)
+    return None
+
+
+def get_all_python_files_in(folder: str) -> List[TextDocument]:
+    """Returns all Python files in the workspace."""
+    python_files = []
+    workspace_root = pathlib.Path(uris.to_fs_path(LSP_SERVER.workspace.root_uri))
+    for py_file in workspace_root.glob(f"**/{folder}*.py"):
+        try:
+            document = LSP_SERVER.workspace.get_text_document(uris.from_fs_path(str(py_file)))
+            python_files.append(document)
+        except Exception:
+            continue
+    return python_files
 
 
 # TODO: If your tool is a linter then update this section.
