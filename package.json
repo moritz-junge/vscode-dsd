@@ -1,7 +1,7 @@
 {
     "name": "dsd",
     "displayName": "Dynamic Stack Decider LSP",
-    "description": "Linting support for python files using `dsd`.",
+    "description": "Adds Dynamic Stack Decider language support to VS Code.",
     "version": "0.2.0",
     "icon": "./images/icon.png",
     "preview": false,
