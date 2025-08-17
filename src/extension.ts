@@ -18,6 +18,7 @@ import { getLSClientTraceLevel } from './common/utilities';
 import { createOutputChannel, onDidChangeConfiguration, registerCommand } from './common/vscodeapi';
 
 let lsClient: LanguageClient | undefined;
+let serverCurrentlyStarting: boolean;
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     // This is required to get server name and module. This should be
     // the first thing that we do in this extension.
@@ -48,12 +49,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     traceLog(`Module: ${serverInfo.module}`);
     traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
+    serverCurrentlyStarting = false;
+
     const runServer = async () => {
         const interpreter = getInterpreterFromSetting(serverId);
         if (interpreter && interpreter.length > 0) {
             if (checkVersion(await resolveInterpreter(interpreter))) {
                 traceVerbose(`Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(' ')}`);
+                if (serverCurrentlyStarting) {
+                    return;
+                }
+                serverCurrentlyStarting = true;
                 lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+                serverCurrentlyStarting = false;
             }
             return;
         }
@@ -61,7 +69,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const interpreterDetails = await getInterpreterDetails();
         if (interpreterDetails.path) {
             traceVerbose(`Using interpreter from Python extension: ${interpreterDetails.path.join(' ')}`);
+            if (serverCurrentlyStarting) {
+                return;
+            }
+            serverCurrentlyStarting = true;
             lsClient = await restartServer(serverId, serverName, outputChannel, lsClient);
+            serverCurrentlyStarting = false;
             return;
         }
 
