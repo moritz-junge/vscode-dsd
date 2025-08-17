@@ -2,7 +2,7 @@
     "name": "dsd",
     "displayName": "Dynamic Stack Decider LSP",
     "description": "Adds Dynamic Stack Decider language support to VS Code.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "icon": "./images/icon.png",
     "preview": false,
     "serverInfo": {
