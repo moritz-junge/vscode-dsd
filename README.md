@@ -62,6 +62,10 @@ If you find any issues not listed here, please report them on the [GitHub issue 
 A comprehensive changelog can be found [here](./CHANGELOG.md). \
 Here are some highlights:
 
+### 0.2.1
+
+- Fixed a bug where the server would start multiple times ([#1](https://github.com/moritz-junge/vscode-dsd/issues/1)).
+
 ### 0.2.0
 
 - Added Autocompletion for actions, decisions and subtrees
