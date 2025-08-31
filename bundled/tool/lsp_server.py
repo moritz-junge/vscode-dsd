@@ -71,9 +71,114 @@ TOOL_ARGS = []  # default arguments always passed to your tool.
 
 
 ## Features
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_FORMATTING)
+def format_document(params: lsp.DocumentFormattingParams) -> List[lsp.TextEdit] | None:
+    log_to_output("Formatting requested")
+    lines = get_file_contents(params.text_document.uri)
+    range = lsp.Range(
+        start=lsp.Position(line=0, character=0), end=lsp.Position(line=len(lines), character=len(lines[-1]) - 1)
+    )
+    formatting_edits = format_lines(lines, range)
+    return formatting_edits
+
+
+@LSP_SERVER.feature(lsp.TEXT_DOCUMENT_RANGE_FORMATTING)
+def format_range(params: lsp.DocumentRangeFormattingParams) -> List[lsp.TextEdit] | None:
+    log_to_output("Range formatting requested")
+    lines = get_file_contents(params.text_document.uri)
+    formatting_edits = format_lines(lines, params.range)
+    return formatting_edits
+
+
+def format_lines(lines: List[str], range: lsp.Range) -> List[lsp.TextEdit]:
+    edits: List[lsp.TextEdit] = []
+    for i, line in enumerate(lines[range.start.line : range.end.line + 1], start=range.start.line):
+        edits.extend(format_single_space_after(line, ",", i))
+        edits.extend(format_surround_spaces(line, "+", i))
+        if not line.startswith("-->"):
+            edits.extend(format_surround_spaces(line, "-->", i))
+    edits = list(filter(lambda edit: is_in_range(edit, range), edits))
+    log_to_output(str(edits))
+    return edits
+
+
+def is_in_range(edit: lsp.TextEdit, range: lsp.Range) -> bool:
+    inside_line = edit.range.start.line >= range.start.line and edit.range.end.line <= range.end.line
+    inside_start_character_range = (
+        edit.range.start.line != range.start.line or edit.range.start.character >= range.start.character
+    )
+    inside_end_character_range = (
+        edit.range.end.line != range.end.line or edit.range.end.character <= range.end.character
+    )
+    return inside_line and inside_start_character_range and inside_end_character_range
+
+
+def format_single_space_before(line: str, symbol: str, line_number: int) -> List[lsp.TextEdit]:
+    edits = []
+    re_symbol = re.escape(symbol)
+    for match in re.finditer(rf"\S({re_symbol})|(\s\s+){re_symbol}", line):
+        if match.group(1):
+            edits.append(
+                lsp.TextEdit(
+                    range=lsp.Range(
+                        start=lsp.Position(line=line_number, character=match.start(1)),
+                        end=lsp.Position(line=line_number, character=match.end(1)),
+                    ),
+                    new_text=" " + match.group(1),  # Add space before plus sign
+                )
+            )
+        elif match.group(2):
+            edits.append(
+                lsp.TextEdit(
+                    range=lsp.Range(
+                        start=lsp.Position(line=line_number, character=match.start(2)),
+                        end=lsp.Position(line=line_number, character=match.end(2)),
+                    ),
+                    new_text=" ",  # Remove superfluous whitespace
+                )
+            )
+    return edits
+
+
+def format_single_space_after(line: str, symbol: str, line_number: int) -> List[lsp.TextEdit]:
+    edits = []
+    re_symbol = re.escape(symbol)
+    for match in re.finditer(rf"({re_symbol})\S|{re_symbol}(\s\s+)", line):
+        if match.group(1):
+            edits.append(
+                lsp.TextEdit(
+                    range=lsp.Range(
+                        start=lsp.Position(line=line_number, character=match.start(1)),
+                        end=lsp.Position(line=line_number, character=match.end(1)),
+                    ),
+                    new_text=match.group(1) + " ",  # Add space before plus sign
+                )
+            )
+        elif match.group(2):
+            edits.append(
+                lsp.TextEdit(
+                    range=lsp.Range(
+                        start=lsp.Position(line=line_number, character=match.start(2)),
+                        end=lsp.Position(line=line_number, character=match.end(2)),
+                    ),
+                    new_text=" ",  # Remove superfluous whitespace
+                )
+            )
+    return edits
+
+
+def format_surround_spaces(line: str, symbol: str, line_number: int) -> List[lsp.TextEdit]:
+    edits = []
+    edits.extend(format_single_space_before(line, symbol, line_number))
+    edits.extend(format_single_space_after(line, symbol, line_number))
+    return edits
+
+
 @LSP_SERVER.feature(lsp.TEXT_DOCUMENT_COMPLETION, lsp.CompletionOptions(trigger_characters=["@", "$", "#", "+", " "]))
 def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.CompletionList | None:
     log_to_output("Completions requested")
+    if not params:
+        return None
     items = []
     lines = get_file_contents(params.text_document.uri)
     position = params.position
