@@ -28,6 +28,11 @@ This Extension is still under active development and will include more features 
   - Names of actions, decisions and subtrees (triggered by  `@`, `$`, `#`)
   - Parameters for actions and decisions (triggered by `+`)
   - Cases for decisions (in a new line after a decision)
+- Basic Auto Formatting:
+  - Ensures single space before and after each `+`
+  - Ensures single space after each `,`
+  - Ensures single space before and after each `-->` in decisions
+
 
 ## Requirements
 
@@ -61,6 +66,10 @@ If you find any issues not listed here, please report them on the [GitHub issue 
 
 A comprehensive changelog can be found [here](./CHANGELOG.md). \
 Here are some highlights:
+
+### 0.3.0
+
+- Added basic auto formatting
 
 ### 0.2.1
 
