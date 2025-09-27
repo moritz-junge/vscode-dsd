@@ -202,7 +202,7 @@ def completions(params: Optional[lsp.CompletionParams] = None) -> lsp.Completion
     if cursor_word_prefix == "$":  # Decision
         items.extend(
             map(
-                lambda decision: lsp.CompletionItem(label=decision, kind=lsp.CompletionItemKind.Interface),
+                lambda decision: lsp.CompletionItem(label=decision, kind=lsp.CompletionItemKind.Interface, insert_text=f"{decision}\n    "),
                 get_all_decisions(),
             )
         )
