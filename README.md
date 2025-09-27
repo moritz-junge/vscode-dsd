@@ -50,7 +50,7 @@ This extension contributes the following settings:
 
 ## Planned Features
 
-- Formatting for dsd files
+- More advanced formatting for dsd files
 - Basic error detection (through parser)
 - Better autocompletion for decisions (automatically inserting cases)
 
